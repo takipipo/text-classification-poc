@@ -5,6 +5,7 @@ from tqdm import tqdm
 from datasets import load_dataset
 from datasets.dataset_dict import DatasetDict
 from transformers import CamembertTokenizer
+import torch
 
 from ..utilities.text_helper import text_preprocessor
 
@@ -27,21 +28,21 @@ class SequenceData:
         if do_train:
             self.preprocessed_train_dataset = self._preprocess_dataset("train")
         if do_val:
-            self.preprocessed_train_dataset = self._preprocess_dataset("validation")
+            self.preprocessed_val_dataset = self._preprocess_dataset("validation")
         if do_test:
-            self.preprocessed_train_dataset = self._preprocess_dataset("test")
+            self.preprocessed_test_dataset = self._preprocess_dataset("test")
 
-    def get_dataset(self, split_type: str):
+    def get_dataset(self, split_type: str) -> Dict[str, torch.tensor]:
         if split_type == "train":
-            return self.train_dataset
+            return self.preprocessed_train_dataset
         elif split_type == "val":
-            return self.validation_dataset
+            return self.preprocessed_val_dataset
         elif split_type == "test":
-            return self.test_dataset
+            return self.preprocessed_test_dataset
         else:
             raise ValueError(f"Unknown split type: {split_type}")
 
-    def _preprocess_dataset(self, split_type: str) -> Dict[str, List[int]]:
+    def _preprocess_dataset(self, split_type: str) -> Dict[str, torch.tensor]:
         _dataset = copy.deepcopy(self.dataset)
         _dataset = _dataset[split_type].add_column(
             "preprocessed_texts",
